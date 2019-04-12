@@ -4,23 +4,30 @@ quick assessment of MiSeq reads (fastqc, species identification, coverage and es
 Friedrich-Loefller-Institut 2019.01.28
 Authors: Mostafa Abdel-Glil and Jörg Linde
 """
+#update for new experiments
 runfolder="190315_M05407_0022_000000000-C7JLG"
+raw_data_dir = "/data/AGr150/RawData/Illumina/190315_M05407_0022_000000000-C7JLG"
+
+
 #AGfolder="AGr110"
 ##homfolder="mostafa.abdel/trails_JUNK"
 #raw_data_dir = "/data/"+AGfolder+"/RawData/Illumina/"+runfolder+"/"
 #results = "/home/Share/QC_sequencing_runs/"+runfolder+"/"
-raw_data_dir = "/data/AGr150/RawData/Illumina/190315_M05407_0022_000000000-C7JLG"
+#envs_folder = "/data/AGr110/RawData/Illumina/QC_pipeline/envs/"
+#scripts_dir = "/data/AGr110/RawData/Illumina/QC_pipeline/scripts"#kraken_report_mqc.sh
+
 results = "/home/mostafa.abdel/pipelines/QC-Pipeline/QC_sequencing_runs/"+runfolder+"/"
-multiqc_dir = results + "/multiqc/"
+snakemake_folder =  "/home/mostafa.abdel/aProjects/gitProjects/qc_pipeline/"
+envs_folder = snakemake_folder + "envs/"
+scripts_dir = snakemake_folder + "scripts"#kraken_report_mqc.sh
 
 SAMPLES, = glob_wildcards( raw_data_dir + "{sample}_L001_R1_001.fastq.gz") #data: 11T0323_S9_L001_R1_001.fastq.gz
 minikraken_db_dir = "/home/mostafa.abdel/dbs/miniKraken/minikraken_20171019_8GB" #/home/DB_RAM/KrakenDB
-fastqc_dir = results + "fastqc_dir/"
+fastqc_dir = results + "fastqc_dir"
 kraken_fastq_dir = results + "kraken_fastq_dir/"
 coverage_res = results + "coverage_res/"
-envs_folder = "/data/AGr110/RawData/Illumina/QC_pipeline/envs/"
-log_folder = results + "log_folder/"
-scripts_dir = "/data/AGr110/RawData/Illumina/QC_pipeline/scripts"#kraken_report_mqc.sh
+log_folder = results + "log_folder"
+multiqc_dir = results + "multiqc/"
 
 rule all:
     input:
