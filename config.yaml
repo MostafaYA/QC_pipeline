@@ -1,0 +1,11 @@
+#directories #Dont forget the backslash at the end of the path
+snakemake_folder: /home/pipelines/qc_pipeline/
+raw_data_dir: /home/pipelines/qc_pipeline/Links_190417_M05407_0025_000000000-C7JLY/
+results_dir: Results/190417_M05407_0025_000000000-C7JLY/
+#results_dir: /home/QC_sequencing_runs/190417_M05407_0025_000000000-C7JLY/
+kraken: /home/DB_RAM/Kraken2DB #/home/DB_RAM/Kraken2DB #/home/mostafa.abdel/dbs/miniKraken/minikraken_20171019_8GB #
+
+kraken2_opts: --memory-mapping #use to avoid loading KrakenDB in RAM in case it already loaded
+
+#/home/Share/190417_M05407_0025_000000000-C7JLY/
+#/home/mostafa.abdel/pipelines/QC-Pipeline/QC_sequencing_runs/190417_M05407_0025_000000000-C7JLY/

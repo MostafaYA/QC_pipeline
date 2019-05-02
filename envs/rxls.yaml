@@ -1,0 +1,7 @@
+channels:
+  - r
+  - conda-forge
+dependencies:
+  - r =3.5.1
+  - r-writexl =1.0
+

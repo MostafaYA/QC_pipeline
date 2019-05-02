@@ -4,51 +4,64 @@ quick assessment of MiSeq reads (fastqc, species identification, coverage and es
 Friedrich-Loefller-Institut 2019.01.28
 Authors: Mostafa Abdel-Glil and Jörg Linde
 """
-#update for new experiments
-runfolder="190315_M05407_0022_000000000-C7JLG"
-raw_data_dir = "/data/AGr150/RawData/Illumina/190315_M05407_0022_000000000-C7JLG"
+"""
+# TODO:
+1- split the vlaue of the Q20 and Q30 for column of percentage
+2- bash for ID, create/updating the config, take input and make output and run the snakemake
+3-
+"""
+configfile: "config.yaml"
+snakemake_folder=config['snakemake_folder']
+raw_data_dir=config['raw_data_dir']
+results=config['results_dir']
+kraken_db_dir=config['kraken']
 
+"""optional arguments"""
+if "kraken2_opts" in config:
+    kraken2_opts= config["kraken2_opts"]
+else:
+    kraken2_opts= ""
 
-#AGfolder="AGr110"
-##homfolder="mostafa.abdel/trails_JUNK"
-#raw_data_dir = "/data/"+AGfolder+"/RawData/Illumina/"+runfolder+"/"
-#results = "/home/Share/QC_sequencing_runs/"+runfolder+"/"
-#envs_folder = "/data/AGr110/RawData/Illumina/QC_pipeline/envs/"
-#scripts_dir = "/data/AGr110/RawData/Illumina/QC_pipeline/scripts"#kraken_report_mqc.sh
+"""SAMPLES"""
+#SAMPLES, INDEXES = glob_wildcards( raw_data_dir + "{sample}_S{index}_L001_R1_001.fastq.gz") #data: 11T0323_S9_L001_R1_001.fastq.gz
+#SAMPLES, = glob_wildcards( raw_data_dir + "{sample}_L001_R1_001.fastq.gz")
+SAMPLES, = glob_wildcards( raw_data_dir + "{sample}_R1.fastq.gz")
 
-results = "/home/mostafa.abdel/pipelines/QC-Pipeline/QC_sequencing_runs/"+runfolder+"/"
-snakemake_folder =  "/home/mostafa.abdel/aProjects/gitProjects/qc_pipeline/"
+"""directories"""
 envs_folder = snakemake_folder + "envs/"
 scripts_dir = snakemake_folder + "scripts"#kraken_report_mqc.sh
-
-SAMPLES, = glob_wildcards( raw_data_dir + "{sample}_L001_R1_001.fastq.gz") #data: 11T0323_S9_L001_R1_001.fastq.gz
-minikraken_db_dir = "/home/mostafa.abdel/dbs/miniKraken/minikraken_20171019_8GB" #/home/DB_RAM/KrakenDB
-fastqc_dir = results + "fastqc_dir"
+fastqc_dir = results + "fastqc_dir/"
 kraken_fastq_dir = results + "kraken_fastq_dir/"
+fastp_dir= results + "fastp_dir/"
 coverage_res = results + "coverage_res/"
-log_folder = results + "log_folder"
+log_folder = results + "log_folder/"
 multiqc_dir = results + "multiqc/"
+
+"""variables"""
+#r1 = raw_data_dir + "{sample}_L001_R1_001.fastq.gz",
+#r2 = raw_data_dir + "{sample}_L001_R2_001.fastq.gz"
+#fastqc_zip_trail = "_L001_R2_001_fastqc.zip"
+r1 = raw_data_dir + "{sample}_R1.fastq.gz",
+r2 = raw_data_dir + "{sample}_R2.fastq.gz"
+fastqc_zip_trail = "_R2_fastqc.zip"
+
 
 rule all:
     input:
-        FastQC=expand(fastqc_dir + "{sample}/{sample}_L001_R2_001_fastqc.zip", sample=SAMPLES),
+        FastQC=expand(fastqc_dir + "{sample}/{sample}" + fastqc_zip_trail, sample=SAMPLES),
         Kraken_fastq=expand(kraken_fastq_dir + "{sample}.report.txt", sample=SAMPLES),
         KrakenSummary= kraken_fastq_dir + "kraken_reads_per_species_mqc.txt",
-        #coverage=expand(coverage_res+"{sample}.csv", sample=SAMPLES),
+        fastp_tsv= fastp_dir + "FASTQ_quality_results.txt",
         multiqc_report= multiqc_dir + "multiqc_report.html"
-        #CoverageInfo=expand( coverage_info_dir + "{sample}.AverageCoverage.txt", sample=SAMPLES),
-        #Coverage= coverage_info_dir + "average_coverage_mqc.txt",
-        #fastqc_report= multiqc_dir + "fastqc_report.html",
 
 """
-Quality check of raw reads using FastQC
+FastQC
 """
 rule FastQC:
     input:
-        r1 = raw_data_dir + "{sample}_L001_R1_001.fastq.gz",
-        r2 = raw_data_dir + "{sample}_L001_R2_001.fastq.gz"
+        r1 = r1, r2 = r2
     output:
-        fastqc_zip = fastqc_dir + "{sample}/{sample}_L001_R2_001_fastqc.zip"
+        fastqc_zip = fastqc_dir + "{sample}/{sample}" + fastqc_zip_trail
     threads: 32
     conda:
         envs_folder + "fastqc.yaml"
@@ -59,38 +72,33 @@ rule FastQC:
     shell:
         "fastqc -t {threads} -f fastq -o {params.fastqc_dir_tmp} {input.r1} {input.r2} 2>&1 | sed 's/^/[fastqc] /' | tee -a {log}"
 """
-Kraken taxonomic assignment of raw reads, screening with mini-kraken DB
+Kraken
 """
-rule kraken: #screen the fastq files against minikraken database and summarize the results
+rule kraken: #screen the fastq files against kraken database and summarize the results
     input:
-        r1 = raw_data_dir + "{sample}_L001_R1_001.fastq.gz",
-        r2 = raw_data_dir + "{sample}_L001_R2_001.fastq.gz",
+        r1 = r1, r2 = r2,
     output:
-        mini_kraken_seq= temp(kraken_fastq_dir + "{sample}.sequences.kraken"),
-        mini_kraken_seq_label= temp(kraken_fastq_dir + "{sample}.sequences.labels"),
-        mini_kraken_report= kraken_fastq_dir + "{sample}.report.txt",
+        kraken_report= kraken_fastq_dir + "{sample}.report.txt",
     threads: 32
     log:
         log_folder + "{sample}/kraken.log"
     conda:
       envs_folder + "kraken.yaml"
     shell:
-        "kraken --db {minikraken_db_dir} --paired --check-names --threads {threads} --gzip-compressed --fastq-input {input.r1} {input.r2} --output {output.mini_kraken_seq} 2>&1 | sed 's/^/[kraken] /' | tee -a {log}"
-        " && kraken-translate --db {minikraken_db_dir} {output.mini_kraken_seq} > {output.mini_kraken_seq_label}"
-        " && kraken-report --db {minikraken_db_dir} {output.mini_kraken_seq} > {output.mini_kraken_report}"
+        "kraken2 --db {kraken_db_dir} --paired --threads {threads} --gzip-compressed {input.r1} {input.r2} --minimum-base-quality 13 --output -  --report {output.kraken_report} {kraken2_opts} 2>&1 | sed 's/^/[kraken2] /' | tee -a {log}" #--minimum-base-quality 13 (?? )
 """
-create kraken  report for reads
+kraken report summary
 """
 rule kraken_summary_reads:
     input:
         kraken_report= kraken_fastq_dir + "{sample}.report.txt",
     output:
-        kraken_report_summary = temp (kraken_fastq_dir + "{sample}.kraken_results_summary.txt") #tmp file with tailing empty TAB, will be shortende by cut
+        kraken_report_summary = temp (kraken_fastq_dir + "{sample}.kraken_results_summary.txt")
     shell:
-        "bash {scripts_dir}/kraken_report_summary.sh {input.kraken_report} | tee -a {output.kraken_report_summary}"
+        "bash {scripts_dir}/kraken_report_summary.sh {input.kraken_report} | tee -a {output.kraken_report_summary} 2>&1 | sed 's/^/[kraken2-Results] /' "
 
 """
-create kraken mqc report for reads
+kraken mqc report
 """
 rule kraken_mqc_reads:
     input:
@@ -98,21 +106,54 @@ rule kraken_mqc_reads:
     output:
         kraken_mqc = kraken_fastq_dir + "kraken_reads_per_species_mqc.txt",#final result as input for MQC
     shell:
-        "bash {scripts_dir}/kraken_report_mqc.sh {kraken_fastq_dir} {output.kraken_mqc} && cat {output.kraken_mqc}"
-
+        "bash {scripts_dir}/kraken_report_mqc.sh {kraken_fastq_dir} {output.kraken_mqc} && cat {output.kraken_mqc} 2>&1 | sed 's/^/[kraken2-Results] /'"
 """
-#do we need to unzip the data for that???
-Calculate coverage for each sample
+Calculate coverage
 """
 rule coverage:
-    input:#input is unzipped fastq-files AND reference genome assembly
-      fw=raw_data_dir + "{sample}_L001_R1_001.fastq.gz",
-      rv=raw_data_dir + "{sample}_L001_R2_001.fastq.gz",
-      #ref=config["refstrain"]
+    input:
+      r1= r1, r2= r2,
     output:
       out=coverage_res+"{sample}.csv"#coverage of each sample
-    shell:#adapted from https://github.com/raymondkiu/fastq-info/blob/master/fastq_info_3.sh
-       "sh {scripts_dir}/fastq_info_ma.sh  {input.fw} {input.rv} > {output.out}"
+    conda:
+      envs_folder + "coverage.yaml"
+    shell:
+       "sh {scripts_dir}/fastq_info_ma.sh  {input.r1} {input.r2} > {output.out}"
+"""
+fastp
+"""
+rule fastp:
+    input:
+        r1 = r1, r2 = r2,
+    output:
+        fastp_html = fastp_dir + "{sample}.fastp.html",
+        fastp_json = temp(fastp_dir + "{sample}.fastp.json"),
+        pandoc_md = temp(fastp_dir + "{sample}.pandoc.md"),
+        before_filtr_stats= temp(fastp_dir + "{sample}.stats.txt"),
+        final_stats= fastp_dir + "{sample}.fastp_results_summary.txt",
+    threads: 16
+    log:
+        log_folder + "{sample}/fastp.log"
+    conda:
+      envs_folder + "fastp.yaml" #fastp, pandoc
+    params:
+      report_title="{sample}",
+    shell:
+        "fastp -i {input.r1}  -I {input.r2} --disable_quality_filtering --disable_adapter_trimming --disable_length_filtering --disable_trim_poly_g --json {output.fastp_json} --html {output.fastp_html} --thread {threads} --verbose --report_title {params.report_title} 2>&1 | sed 's/^/[fastp] /' | tee -a {log}"
+        " && pandoc -s -r html {output.fastp_html} -o {output.pandoc_md}"
+        " && grep -m 1 -A 7 'Before filtering' {output.pandoc_md} | tail -n5 > {output.before_filtr_stats}"
+        " && sh {scripts_dir}/fastp_stats.sh {output.before_filtr_stats} > {output.final_stats}"
+"""
+collect fastp
+"""
+rule collect_fastp:
+    input:
+        final_stats= expand(fastp_dir + "{sample}.fastp_results_summary.txt", sample=SAMPLES),
+    output:
+        fastp_tsv= fastp_dir + "FASTQ_quality_results.txt",
+        fastp_mqc= fastp_dir + "FASTQ_quality_results_mqc.txt"
+    shell:
+        "bash {scripts_dir}/fastp_stats_mqc.sh {fastp_dir} {output.fastp_mqc} {output.fastp_tsv} && cat {output.fastp_mqc} 2>&1 | sed 's/^/[fastp-Results] /'"
 
 """
 Collects coverage result from ech sample and combines in one file
@@ -126,27 +167,27 @@ rule collect_coverage:
         multiqc=coverage_res+"Coverage_fastq_info_barplot_mqc.txt",
         multiqc_table=coverage_res+"Coverage_fastq_info_table_mqc.txt",
     log:
-       coverage_res+"allcoverage.log"
-    #conda:
-    #    envs_folder + "rxls.yaml"
+       log_folder+"allcoverage.log"
+    conda:
+        envs_folder + "rxls.yaml"
     script:
         "scripts/combineCoverage.R"#converts to xls
-
 """
 MultiQC for FastQC
 """
 rule multiqc_fastqc:
     input:
-        FastQC=expand(fastqc_dir + "{sample}/{sample}_L001_R2_001_fastqc.zip", sample=SAMPLES),
+        FastQC=expand(fastqc_dir + "{sample}/{sample}" + fastqc_zip_trail, sample=SAMPLES),
         KrakenSummary= kraken_fastq_dir + "kraken_reads_per_species_mqc.txt",
         multiqc_cov=coverage_res+"Coverage_fastq_info_barplot_mqc.txt",
         multiqc_table=coverage_res+"Coverage_fastq_info_table_mqc.txt",
+        fastp_mqc= fastp_dir + "FASTQ_quality_results_mqc.txt"
     output:
         multiqc_report= multiqc_dir + "multiqc_report.html",
-    #log:
-        #log_folder + "multiqc_fastqc.log"
-    #conda:
-        #envs_folder + "multiqc.yaml"
+    log:
+        log_folder + "multiqc_fastqc.log"
+    conda:
+        envs_folder + "multiqc.yaml"
     shell:
-        "multiqc --filename multiqc_report --force --outdir {multiqc_dir} {fastqc_dir} {input.KrakenSummary} {input.multiqc_cov} {input.multiqc_table}"
+        "multiqc --filename multiqc_report --force --outdir {multiqc_dir} {fastqc_dir} {input.KrakenSummary} {input.multiqc_cov} {input.multiqc_table} {input.fastp_mqc} | tee -a {log}"
         #"multiqc --filename fastqc_assembly_report --outdir {output.results} {input.fastqc}"
