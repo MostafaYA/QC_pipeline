@@ -6,7 +6,9 @@ A bioinformatics workflow for quick assessment of illumina reads with the focus 
 
 ### download the project 
 * Set up a project folder for the run 
+```
 cd /path/to/installation
+```
 * Download the latest version from gitlab  
 ```
 git clone https://gitlab.com/FLI_Bioinfo/qc_pipeline.git
