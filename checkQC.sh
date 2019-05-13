@@ -4,8 +4,7 @@
 #Author: Mostafa Abdel-Glil (mostafa.abdel-glil@fli.de)
 # A bash script to generate input folder and run the snakefile
 #TODO
-#directly edit the config file to use with snakemake
-#check dependencies
+
 
 pushd . > /dev/null
 DIR="${BASH_SOURCE[0]}"
@@ -23,6 +22,8 @@ OPTIONAL:
    -l, --linksdir         DIR, a directory to create links for the reads (default: linksdir/)
    -o, --outdir           DIR, an output directory for the snakemake results (default: output/)
    --run [true, false]    Automatically run snakemake (default: true)
+   --cores                Number of cores to use
+   --kraken2              Path to (Mini)kraken2 DB. You may download ftp://ftp.ccb.jhu.edu/pub/data/kraken2_dbs/minikraken2_v2_8GB_201904_UPDATE.tgz
    -h, --help             This help" ; }
 function error_exit { echo "${PROGNAME}: ${1:-"Unknown Error"}" 1>&2; exit 1; } #SOURCE
 function remove_trailing_slash { string="$1" ; new_string=`echo "$string" | perl -nl -e 's/\/+$//;' -e 'print $_'` ; echo $new_string ; } #SOURCE
@@ -32,6 +33,9 @@ while [ "$1" != "" ]; do
         -l | --linksdir ) shift; linksdir=$1 ;;
         -o | --outdir ) shift; outdir=$1 ;;
         --run ) shift; RUN=$1 ;;
+        --cores) shift; cores=$1 ;;
+        --kraken2) shift; kraken2=$1 ;;
+
         -h | --help )  usage; exit ;;
         * ) usage; exit 1
     esac
@@ -121,14 +125,16 @@ if [[ -e config.yaml ]]; then
   var=`pwd`; sed -e "s|snakemake_folder: |snakemake_folder: $var/ #|g" $config > $config_actual
   sed -i "s|raw_data_dir: |raw_data_dir: $linksdir/ #|g" $config_actual
   sed -i "s|results_dir: |results_dir: $outdir/ #|g" $config_actual
+  sed -i "s|kraken: |kraken: $kraken2/ #|g" $config_actual
+
 else
-  echo -e "\e[1m\e[38:2:240:143:104mCannot find the file: config.yaml. Please update it manually with the paths of the raw_data_dir and the fasta_dir\e[0m\e[39m"
+  echo -e "\e[1m\e[38:2:240:143:104mCannot find the file: config.yaml. Please update it manually with the paths of the raw_data_dir \e[0m\e[39m"
 fi
 
 echo "--------------------------------------------------------------------------------"
 echo "Please note:"
-echo -e "To see what snakemake will do, run: \e[38;5;42m\e[1msnakemake --snakefile QC_ma.Snakefile --cores 128 --use-conda --configfile $config_actual -np \e[39m\e[0m"
-echo -e "To execute the pipeline, run: \e[38;5;42m\e[1msnakemake --snakefile QC_ma.Snakefile --cores 128 --use-conda --configfile $config_actual -p \e[39m\e[0m"
+echo -e "To see what snakemake will do, run: \e[38;5;42m\e[1msnakemake --snakefile QC_ma.Snakefile --cores $cores --use-conda --configfile $config_actual -np \e[39m\e[0m"
+echo -e "To execute the pipeline, run: \e[38;5;42m\e[1msnakemake --snakefile QC_ma.Snakefile --cores $cores --use-conda --configfile $config_actual -p \e[39m\e[0m"
 #echo "To avoid conda problems, run: export PERL5LIB=\""\"
 
 if [[  $RUN =  "true" ]];
@@ -137,8 +143,8 @@ then
   echo "Running snakemake"
   echo -ne "\n"
   export PERL5LIB=""
-  snakemake --snakefile QC_ma.Snakefile --cores 128 --use-conda -p --configfile $config_actual
-  rm $linksdir/*.gz && rmdir $linksdir
+  snakemake --snakefile QC_ma.Snakefile --cores $cores --use-conda -p --configfile $config_actual
+  #rm $linksdir/*.gz && rmdir $linksdir
 fi
 #snakemake --snakefile snakeNullarbor.Snakefile -np --cores 128 -p --use-conda
 

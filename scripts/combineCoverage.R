@@ -20,7 +20,9 @@ covData=cbind(ID,covData)#replace first two columns with ID and name
 colnames(covData)[1]="ID"
 
 write.table(covData,snakemake@output[["allcsv"]],row.names=F,sep="\t",quote=F)
-write_xlsx(covData,snakemake@output[["allxls"]])
+covData_0=covData#replaces NA with NA as string as otherwise Excel ignores it
+covData_0[is.na(covData_0)] <- "NA"
+write_xlsx(covData_0,snakemake@output[["allxls"]])
 cat("successfully created XLS \n",file=snakemake@log[[1]],sep="",append=T)
 
 
