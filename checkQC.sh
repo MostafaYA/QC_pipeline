@@ -22,7 +22,7 @@ OPTIONAL:
    -l, --linksdir         DIR, a directory to create links for the reads (default: linksdir/)
    -o, --outdir           DIR, an output directory for the snakemake results (default: output/)
    --run [true, false]    Automatically run snakemake (default: true)
-   --cores                Number of cores to use
+   --cores                Number of cores to use (default: available cpus)
    --kraken2              Path to (Mini)kraken2 DB. You may download ftp://ftp.ccb.jhu.edu/pub/data/kraken2_dbs/minikraken2_v2_8GB_201904_UPDATE.tgz
    -h, --help             This help" ; }
 function error_exit { echo "${PROGNAME}: ${1:-"Unknown Error"}" 1>&2; exit 1; } #SOURCE
@@ -43,11 +43,12 @@ while [ "$1" != "" ]; do
 done
 linksdir_default='linksdir'
 outdir_default='output'
+cores_default=$(nproc)
 if [[ -z $fastqdirectory ]] ; then error_exit "must specify a fastq directory, use '-d' - exit" ; fi
 if [[ -z $linksdir ]]; then linksdir=$linksdir_default; fi
 if [[ -z $outdir ]]; then outdir=$outdir_default; fi
 if [[ -z $RUN ]]; then RUN=true; fi
-
+if [[ -z $cores ]]; then cores=cores_default; fi
 if [[ ! -e $linksdir ]]; then mkdir -p $linksdir;
 else linksdir="$linksdir"_"$(date '+%d%b%Y_%H%M%S')" && mkdir -p $linksdir
 fi
