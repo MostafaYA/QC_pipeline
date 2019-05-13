@@ -117,14 +117,22 @@ echo "--------------------------------------------------------------------------
 echo "$linksdir is created successfully"
 echo "--------------------------------------------------------------------------------"
 #update the config file
+
 echo "writing config file"
 if [[ -e config.yaml ]]; then
   config=config.yaml
   config_actual=config_"$(date '+%d%b%Y_%H%M%S')".yaml
-  echo -e "Found $config. Assume that the current directory is where the QC_ma.snakefile is downloaded. Writing the $config_actual file with the paths..."
+  echo -e "Found $config. Assume that the current directory is where the QC_ma.snakefile is downloaded. Writing the $config_actual file with paths..."
   var=`pwd`; sed -e "s|snakemake_folder: |snakemake_folder: $var/ #|g" $config > $config_actual
   sed -i "s|raw_data_dir: |raw_data_dir: $linksdir/ #|g" $config_actual
   sed -i "s|results_dir: |results_dir: $outdir/ #|g" $config_actual
+  if [[ -e $kraken2 ]]; then
+    kraken2=$kraken2
+  else
+    echo "can not detect the path to kraken2"
+    kraken2=""
+    echo "please update the cofig file with the path to kraken2"
+  fi
   sed -i "s|kraken: |kraken: $kraken2/ #|g" $config_actual
 
 else
