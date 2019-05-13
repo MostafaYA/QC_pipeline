@@ -8,7 +8,9 @@ A bioinformatics workflow for quick assessment of illumina reads with the focus 
 * Set up a project folder for the run 
 cd /path/to/installation
 * Download the latest version from gitlab  
-`git clone https://gitlab.com/FLI_Bioinfo/qc_pipeline.git`
+```
+git clone https://gitlab.com/FLI_Bioinfo/qc_pipeline.git
+```
 
 ### Running the qc_pipeline 
 To run the qc_pipeline, run the bash script `checkQC.sh`. Detailed usage is below 
@@ -35,7 +37,9 @@ OPTIONAL:
 
 #### Example  
 
-`bash ./checkQC.sh -d /path/to/inputfolder -o /path/to/outputfolder --run true --cores 64 --kraken2 /home/DB_RAM/kraken2`  
+```
+bash ./checkQC.sh -d /path/to/inputfolder -o /path/to/outputfolder --run true --cores 64 --kraken2 /home/DB_RAM/kraken2
+```
 
 ## Authors    
 Mostafa Abdel-Glil (mostafa.abdel-glil@fli.de)  
