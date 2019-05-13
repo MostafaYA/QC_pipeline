@@ -4,13 +4,13 @@ A bioinformatics workflow for quick assessment of illumina reads with the focus 
 
 ## Getting Started
 
-### Obtaining the Current Version of the workflow 
+### download the project 
 * Set up a project folder for the run 
 cd /path/to/installation
 * Download the latest version from gitlab  
 `git clone https://gitlab.com/FLI_Bioinfo/qc_pipeline.git`
 
-### Running the snake pipeline 
+### Running the qc_pipeline 
 To run the qc_pipeline, run the bash script `checkQC.sh`. Detailed usage is below 
 
 ```
