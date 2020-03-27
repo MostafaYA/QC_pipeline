@@ -20,7 +20,8 @@ To run the qc_pipeline, run the bash script `checkQC.sh`. Detailed usage is belo
 ```
 bash ./checkQC.sh -h
 USAGE:
-   bash ./checkQC.sh -d fastq_directory -o Output_directory
+   bash ./checkQC.sh -d fastq_directory -o Output_directory --kraken2 <path to kraken2 db>
+
 REQUIRED:
    -d, --fastq-directory  DIR, a directory where the fastq reads are present
 OPTIONAL:
