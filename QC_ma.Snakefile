@@ -104,29 +104,30 @@ rule kraken_mqc_reads_sepcies:
 
 
 
+"""
+kraken report summary
 
-#"""
-#kraken report summary
-#"""
-#rule kraken_summary_reads:#
-#    input:
-#        kraken_report= kraken_fastq_dir + "{sample}.report.txt",
-#    output:
-#        kraken_report_summary = temp (kraken_fastq_dir + "{sample}.kraken_results_summary.txt")
-#    shell:
-#        "bash {scripts_dir}/kraken_report_summary.sh {input.kraken_report} | tee -a {output.kraken_report_summary} 2>&1 | sed 's/^/[kraken2-Results] /' "
+rule kraken_summary_reads:#
+    input:
+        kraken_report= kraken_fastq_dir + "{sample}.report.txt",
+    output:
+        kraken_report_summary = temp (kraken_fastq_dir + "{sample}.kraken_results_summary.txt")
+    shell:
+        "bash {scripts_dir}/kraken_report_summary.sh {input.kraken_report} | tee -a {output.kraken_report_summary} 2>&1 | sed 's/^/[kraken2-Results] /' "
 
-#"""
-#kraken mqc report
-#"""
-#rule kraken_mqc_reads:
-#    input:
-#        kraken_report_summaries=expand(kraken_fastq_dir + "{sample}.kraken_results_summary.txt", sample=SAMPLES),
-#    output:
-#        kraken_mqc = kraken_fastq_dir + "kraken2_reads_per_species_mqc.txt",#final result as input for MQC
-#    shell:
-#        "bash {scripts_dir}/kraken_report_mqc.sh {kraken_fastq_dir} {output.kraken_mqc} && cat {output.kraken_mqc} 2>&1 | sed 's/^/[kraken2-Results] /'"
+"""
+"""
+kraken mqc report
 
+rule kraken_mqc_reads:
+    input:
+        kraken_report_summaries=expand(kraken_fastq_dir + "{sample}.kraken_results_summary.txt", sample=SAMPLES),
+    output:
+        kraken_mqc = kraken_fastq_dir + "kraken2_reads_per_species_mqc.txt",#final result as input for MQC
+    shell:
+        "bash {scripts_dir}/kraken_report_mqc.sh {kraken_fastq_dir} {output.kraken_mqc} && cat {output.kraken_mqc} 2>&1 | sed 's/^/[kraken2-Results] /'"
+
+"""
 """
 Calculate coverage
 """

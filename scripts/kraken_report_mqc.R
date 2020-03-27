@@ -13,7 +13,13 @@ cat(snakemake@params[["cut"]],file=snakemake@log[[1]],sep="",append=T)
 report_kraken=function(file,type="S",max=4){
 
   krakenreport=read.delim(file,as.is=T)
-  ID=unlist(strsplit(file,"/"))[6]
+#  ID=unlist(strsplit(file,"/"))[5]
+  #tmp=unlist(strsplit(file,"/"))
+  #ID=tmp[length(tmp)-1]
+
+  ID = basename(file)
+
+
   krakenreport=krakenreport[krakenreport[,4]=="U"|krakenreport[,4]==type,]
   krakenreport=krakenreport[order(krakenreport[,1],decreasing=T),c(6,1)]
   if(nrow(krakenreport)<max) {
