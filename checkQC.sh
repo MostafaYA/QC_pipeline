@@ -48,7 +48,7 @@ if [[ -z $fastqdirectory ]] ; then error_exit "must specify a fastq directory, u
 if [[ -z $linksdir ]]; then linksdir=$linksdir_default; fi
 if [[ -z $outdir ]]; then outdir=$outdir_default; fi
 if [[ -z $RUN ]]; then RUN=true; fi
-if [[ -z $cores ]]; then cores=cores_default; fi
+if [[ -z $cores ]]; then cores=$cores_default; fi
 if [[ ! -e $linksdir ]]; then mkdir -p $linksdir;
 else linksdir="$linksdir"_"$(date '+%d%b%Y_%H%M%S')" && mkdir -p $linksdir
 fi
