@@ -15,7 +15,7 @@ popd > /dev/null #SOURCE
 #make a help MSG and pass arguments
 PROGNAME=`basename $0`
 function usage { echo "USAGE:
-   bash ./checkQC.sh -d fastq_directory -o Output_directory
+   bash ./checkQC.sh -d fastq_directory -o Output_directory --kraken2 <path to kraken2 db>
 REQUIRED:
    -d, --fastq-directory  DIR, a directory where the fastq reads are present
 OPTIONAL:
@@ -48,7 +48,7 @@ if [[ -z $fastqdirectory ]] ; then error_exit "must specify a fastq directory, u
 if [[ -z $linksdir ]]; then linksdir=$linksdir_default; fi
 if [[ -z $outdir ]]; then outdir=$outdir_default; fi
 if [[ -z $RUN ]]; then RUN=true; fi
-if [[ -z $cores ]]; then cores=cores_default; fi
+if [[ -z $cores ]]; then cores=$cores_default; fi
 if [[ ! -e $linksdir ]]; then mkdir -p $linksdir;
 else linksdir="$linksdir"_"$(date '+%d%b%Y_%H%M%S')" && mkdir -p $linksdir
 fi
