@@ -18,8 +18,9 @@ percq30=substr(percq30,2,(nchar(percq30[[1]])-2))
 fastp=cbind(fastp,number30)
 fastp=cbind(fastp,percq30)
 colnames(fastp)=c("Isolate","Total.reads","Total.bases","Number.Q30","Percentage.Q30")
+fastp=fastp[,c("Isolate","Total.bases","Number.Q30","Percentage.Q30")]
 
-coverage=coverage[,c("ID", "Estimated.genome.size","Estimated.coverage")]
+coverage=coverage[,c("ID","Total.sequences" "Estimated.genome.size","Estimated.coverage")]
 fastp_cov=merge(fastp,coverage,by.x=1,by.y=1)
 all=merge(fastp_cov,kraken,by.x=1,by.y=1)
 cat("merged input\n",file=snakemake@log[[1]],sep="",append=T)
